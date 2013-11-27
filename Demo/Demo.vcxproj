@@ -55,13 +55,13 @@
     <IntDir>Debug\</IntDir>
     <OutDir>$(ProjectDir)..\bin\X86\Debug\</OutDir>
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>G:\GitHub\ThridPartLib\C\WTL\include;$(IncludePath)</IncludePath>
+    <IncludePath>G:\GitHub\ThridPartLib\C\WTL\include;E:\GitHub\wtl\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <IntDir>Release\</IntDir>
     <OutDir>$(ProjectDir)..\bin\X86\Release\</OutDir>
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>G:\GitHub\ThridPartLib\C\WTL\include;$(IncludePath)</IncludePath>
+    <IncludePath>G:\GitHub\ThridPartLib\C\WTL\include;E:\GitHub\wtl\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <IncludePath>E:\GitHub\wtl\include;G:\GitHub\ThridPartLib\C\WTL\include;$(IncludePath)</IncludePath>
