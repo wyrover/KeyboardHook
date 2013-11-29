@@ -4,8 +4,7 @@
 
 #pragma once
 
-#include "..\DllPatch\PatchDll.h"
-#pragma comment(lib,"DllPatch.lib")
+#include "KeyboardHook.h"
 #include <atlstr.h>
 
 

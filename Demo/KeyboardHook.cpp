@@ -1,5 +1,5 @@
 #include "stdafx.h"
-#include "PatchDll.h"
+#include "KeyboardHook.h"
 #include <shellapi.h>
 #include <tchar.h>
 #include <tlhelp32.h>
@@ -45,7 +45,6 @@ BOOL InstallHook( HWND hWnd, DWORD dwPID, BOOL bGlobalHook )
     if ( NULL == g_hHook )
     {
         DWORD dwThreadID = bGlobalHook ? 0 : GetMainThreadID( dwPID );
-        //g_hHook =::SetWindowsHookEx( WH_KEYBOARD, KeyboardProc, g_hDll, dwThreadID );
         g_hHook =::SetWindowsHookEx( WH_KEYBOARD_LL, LowKeyboardProc, g_hDll, dwThreadID );
     }
     return ( NULL != g_hHook );
@@ -58,48 +57,6 @@ void UnInstallHook()
         ::UnhookWindowsHookEx( g_hHook );
         g_hHook = NULL;
     }
-}
-
-LRESULT CALLBACK KeyboardProc( int code, WPARAM wParam, LPARAM lParam )
-{
-    LRESULT lRet =::CallNextHookEx( g_hHook, code, wParam, lParam );
-    
-    if ( code == HC_ACTION )
-    {
-        DWORD dwVK = ( DWORD )wParam;
-        
-        const int DBCLICKTIMEOUT = 500;
-        
-        if ( ( VK_SPACE == dwVK )  && ( lParam & 0x80000000 ) )	// 按下并抬起了空格键
-        {
-            static BOOL bFirst = TRUE;
-        LABEL:
-            if ( bFirst )
-            {
-                g_dbClickSpaceCNT = 1;
-                g_dwFirstClickSpace = GetTickCount();
-                bFirst = FALSE;
-            }
-            else
-            {
-                g_dbClickSpaceCNT++;
-                g_dwSecondClickSpace = GetTickCount();
-                
-                if ( ( g_dwSecondClickSpace - g_dwFirstClickSpace >= DBCLICKTIMEOUT ) )
-                {
-                    g_dwFirstClickSpace = GetTickCount();
-                    bFirst = TRUE;
-                    goto LABEL;
-                }
-                if ( g_dbClickSpaceCNT == 2 )
-                {
-                    SendMessage( g_hWndNotify, WM_MYMESSAGE, ( WPARAM )g_pCallback, ( LPARAM )g_pParam );
-                }
-                bFirst = TRUE;
-            }
-        }
-    }
-    return lRet;
 }
 
 void SetCallback( PatchCallback pCallback, LPVOID lpParam )
