@@ -17,3 +17,5 @@ FUNC_EXPORTS void SetCallback( PatchCallback pCallback, LPVOID lpParam );
 
 static LRESULT CALLBACK KeyboardProc( int code, WPARAM wParam, LPARAM lParam );
 
+static LRESULT CALLBACK LowKeyboardProc(int code, WPARAM wParam, LPARAM lParam );
+

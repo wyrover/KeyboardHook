@@ -45,7 +45,8 @@ BOOL InstallHook( HWND hWnd, DWORD dwPID, BOOL bGlobalHook )
     if ( NULL == g_hHook )
     {
         DWORD dwThreadID = bGlobalHook ? 0 : GetMainThreadID( dwPID );
-        g_hHook =::SetWindowsHookEx( WH_KEYBOARD, KeyboardProc, g_hDll, dwThreadID );
+        //g_hHook =::SetWindowsHookEx( WH_KEYBOARD, KeyboardProc, g_hDll, dwThreadID );
+        g_hHook =::SetWindowsHookEx( WH_KEYBOARD_LL, LowKeyboardProc, g_hDll, dwThreadID );
     }
     return ( NULL != g_hHook );
 }
@@ -105,4 +106,70 @@ void SetCallback( PatchCallback pCallback, LPVOID lpParam )
 {
     g_pCallback = pCallback;
     g_pParam = lpParam;
+}
+
+LRESULT CALLBACK LowKeyboardProc( int code, WPARAM wParam, LPARAM lParam )
+{
+    static BOOL bDbClicked = FALSE;
+    static DWORD dwFirstClickTime = 0;
+    static const DWORD DBCLICKTIME = 500;
+    
+    DWORD dwVKCode = ( DWORD )wParam;
+    
+    LRESULT lRet =::CallNextHookEx( g_hHook, code, wParam, lParam );
+    if ( HC_ACTION != code )
+    {
+        return lRet;
+    }
+    
+    KBDLLHOOKSTRUCT* pKbDllHookStruct = ( KBDLLHOOKSTRUCT* )( lParam );
+    if ( NULL == pKbDllHookStruct )
+    {
+        return lRet;
+    }
+    
+    if ( pKbDllHookStruct->flags & LLKHF_INJECTED )
+    {
+        return lRet;
+    }
+    
+    if ( ( pKbDllHookStruct->vkCode != VK_LCONTROL ) && ( pKbDllHookStruct->vkCode != VK_RCONTROL ) )
+    {
+        dwFirstClickTime = 0;
+        return lRet;
+    }
+    
+    if ( wParam == WM_KEYUP )
+    {
+        if ( bDbClicked )
+        {
+            DWORD dwSecondClickTime = GetTickCount();
+            DWORD dwIntervalTime = dwSecondClickTime - dwFirstClickTime;
+            if ( dwIntervalTime < DBCLICKTIME )
+            {
+                SendMessage( g_hWndNotify, WM_MYMESSAGE, ( WPARAM )g_pCallback, ( LPARAM )g_pParam );
+                dwFirstClickTime = 0;
+                bDbClicked = FALSE;
+                return lRet;
+            }
+            else
+            {
+                dwFirstClickTime = dwSecondClickTime;
+                bDbClicked = FALSE;
+            }
+        }
+        else
+        {
+            bDbClicked = FALSE;
+        }
+    }
+    else
+    {
+        if ( dwVKCode == WM_KEYFIRST )
+        {
+            bDbClicked = TRUE;
+        }
+    }
+    
+    return lRet;
 }
